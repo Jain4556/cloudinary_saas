@@ -1,12 +1,12 @@
 import { auth, clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { url } from 'inspector';
-import { URL } from 'next/dist/compiled/@edge-runtime/primitives/url';
+
 import { NextResponse } from 'next/server';
 
 
 const isPublicRoute = createRouteMatcher([
-    "/signin",
-    "/signup",
+    "/sign-in",
+    "/sign-up",
     "/",
     "/home"
 ])
@@ -47,5 +47,5 @@ export default clerkMiddleware((auth, req) => {
 })
 
 export const config = {
-    matcher: 
+    matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"]
 }
