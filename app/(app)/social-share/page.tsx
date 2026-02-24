@@ -2,8 +2,6 @@
 
 import React, {useState, useEffect, useRef} from 'react'
 import { CldImage } from 'next-cloudinary';
-import { read } from 'fs';
-import { blob } from 'stream/consumers';
 
 const socialFormats = {
   "Instagram Square (1:1)": {
