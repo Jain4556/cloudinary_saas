@@ -1,51 +1,29 @@
-import { auth, clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-// import { url } from 'inspector';
-
-import { NextResponse } from 'next/server';
-
+import { auth, clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
-    "/sign-in",
-    "/sign-up",
-    "/",
-    "/home"
-])
+  "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+]);
 
-const isPublicApiRoute = createRouteMatcher([
-    "/api/videos"
-])
+export default clerkMiddleware(async (authFn, req) => {
+  const { userId } = await authFn();
+  const { pathname } = req.nextUrl;
 
+  // Protect private routes
+  if (!userId && !isPublicRoute(req)) {
+    return NextResponse.redirect(new URL("/sign-in", req.url));
+  }
 
+  // Prevent logged-in users from visiting auth pages
+  if (userId && (pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up"))) {
+    return NextResponse.redirect(new URL("/home", req.url));
+  }
 
-
-export default clerkMiddleware( async(auth, req) => {
-    const {userId} = await auth();
-    const currentUrl = new URL(req.url)
-
-    const isAccessingDashboard = currentUrl.pathname === "/home"
-    const isApiRequest = currentUrl.pathname.startsWith("/api")
-
-
-    if (userId && isPublicRoute(req) && !isAccessingDashboard) {
-        return NextResponse.redirect(new URL("/home", req.url))
-    }
-
-    // not loggeddIn
-    if (!userId) {
-        if (!isPublicRoute(req) && !isPublicApiRoute(req) ) {
-                return NextResponse.redirect(new URL("/sign-in", req.url))
-        }
-        if (isApiRequest && !isPublicApiRoute(req)) {
-            return NextResponse.redirect(new URL("/sign-in", req.url))
-        }
-        
-    }
-
-    return NextResponse.next()
-
-    
-})
+  return NextResponse.next();
+});
 
 export const config = {
-    matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"]
-}
+  matcher: ["/((?!.*\\..*|_next).*)", "/(api|trpc)(.*)"],
+};
